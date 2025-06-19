@@ -23,6 +23,13 @@ module.exports = {
               '100%': { opacity: 1, transform: 'translateY(0)' },
             },
           },
+          fontFamily: {
+            display: ['var(--font-display', 'sans-serif'],
+            body:    ['var(--font-body',    'sans-serif'],
+          },
+          colors: {
+            creme: '#f5f1e8',
+          },
         },
       },
       plugins: [],
