@@ -13,9 +13,11 @@ Next Steps:
  * Fetch the caption for the image from photo_metadata.
  * Update the caption in Supabase when the user saves.
 
+ 4) Add options to upload videos
+
  Getting Maan Started:
- * Assign project dev (Same authority as me on github)
- * Download git desktop and set up
+ * Assign project dev (Same authority as me on github) x
+ * Download git desktop and set up x
  * Clone Project
  * Hook with git desktop
  * Create seperate branch for maan
