@@ -1,0 +1,24 @@
+Next Steps:
+1) Create the Edit Page
+ * New page: /edit/[photoName]/page.tsx
+ * This page will:
+   * Display the image.
+   * Fetch and display the current caption (if any).
+   * Allow the user to edit and save the caption.
+
+2) Add an “Edit” Button
+ * Add an “Edit” button or icon to each image card (or in the lightroom dialog) that links to the edit page for that image.
+
+3) Supabase Integration (Salim)
+ * Fetch the caption for the image from photo_metadata.
+ * Update the caption in Supabase when the user saves.
+
+ Getting Maan Started:
+ * Assign project dev (Same authority as me on github)
+ * Download git desktop and set up
+ * Clone Project
+ * Hook with git desktop
+ * Create seperate branch for maan
+ * Teach him how to use github desktop
+ * tell him about cursor (possibly)
+ 

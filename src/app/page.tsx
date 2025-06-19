@@ -14,7 +14,8 @@ import {
 import { supabase } from '@/lib/supabaseClient';
 import { Check, Loader2, X as XIcon } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+
 
 interface Photo {
   name: string;
@@ -23,6 +24,8 @@ interface Photo {
 
 export default function GalleryPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
+  // For lightroom navigation
+  const [lightroomIndex, setLightroomIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadPhotos() {
@@ -48,142 +51,121 @@ export default function GalleryPage() {
   
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      <h1 className="text-creme font-retro text-2xl mb-6">My Digital Library</h1>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {photos.map((photo) => (
-          <PhotoItem key={photo.id} photo={photo} />
-        ))}
+    <div className="min-h-screen relative bg-gradient-to-br from-black via-zinc-900 to-creme/20 p-4">
+      <h1 className="text-creme font-retro text-3xl md:text-4xl mb-8 tracking-tight drop-shadow-lg">My Digital Library</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {photos.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-24 opacity-70">
+            <svg width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="#f5f1e8" className="mb-4 animate-pulse"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2zm16 0l-4 4a2 2 0 01-2.83 0L7 7" /></svg>
+            <p className="text-creme text-lg font-body">No photos yet. Click the upload button to add your first photo!</p>
+          </div>
+        ) : (
+          photos.map((photo, idx) => (
+            <PhotoItem
+              key={photo.id}
+              photo={photo}
+              openLightroom={() => setLightroomIndex(idx)}
+            />
+          ))
+        )}
       </div>
+      {/* Floating Upload Button */}
+      <a href="/upload" className="fixed bottom-8 right-8 z-50 bg-white text-black shadow-retro rounded-full w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform ring-2 ring-black hover:ring-creme">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" className="mx-auto" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5v14M5 12h14" stroke="black" strokeWidth="3.5" strokeLinecap="round" />
+        </svg>
+        <span className="sr-only">Upload</span>
+      </a>
+      {/* Lightroom Dialog */}
+      {lightroomIndex !== null && photos[lightroomIndex] && (
+        <LightroomDialog
+          photos={photos}
+          index={lightroomIndex}
+          setIndex={setLightroomIndex}
+          close={() => setLightroomIndex(null)}
+        />
+      )}
     </div>
   );
 }
 
-function PhotoItem({ photo }: { photo: Photo }) {
-  // dialog rename state
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [newName, setNewName] = useState(photo.name);
-  const [saving, setSaving]   = useState(false);
-
+function PhotoItem({ photo, openLightroom }: { photo: Photo, openLightroom?: () => void }) {
   // get the public URL
   const {
     data: { publicUrl },
   } = supabase.storage.from('photos').getPublicUrl(photo.name);
 
-  // handle rename
-  async function handleRenameSave() {
-    if (newName === photo.name) {
-      setIsRenaming(false);
-      return;
-    }
+  return (
+    <Card
+      className="group overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 shadow-retro hover:shadow-lg animate-fadeIn rounded-xl border border-creme/30 bg-black/70 backdrop-blur-md"
+      onClick={openLightroom}
+    >
+      <Image
+        src={publicUrl}
+        alt={photo.name}
+        width={300}
+        height={300}
+        className="object-cover w-full h-48 group-hover:opacity-90 transition-opacity"
+      />
+      <div className="p-2 bg-creme text-black font-sans text-sm text-center truncate group-hover:underline group-hover:font-bold">
+        {photo.name}
+      </div>
+    </Card>
+  );
+}
 
-    let finalName = newName;
-    if (!newName.includes('.')) {
-      const ext = photo.name.split('.').pop();
-      finalName = `${newName}.${ext}`;
-    }
+// Lightroom Dialog Component
+function LightroomDialog({ photos, index, setIndex, close }: { photos: Photo[], index: number, setIndex: (i: number|null) => void, close: () => void }) {
+  const photo = photos[index];
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('photos').getPublicUrl(photo.name);
 
-    setSaving(true);
-    // Call our server-side rename endpoint
-    const res = await fetch('/api/rename', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ oldName: photo.name, newName: finalName }),
-    });
-    const { error } = await res.json();
-  
-    setSaving(false);
-  
-    if (error) {
-      alert('Rename failed: ' + error);
-    } else {
-      alert(`Renamed to ${finalName}`);
-      window.location.reload();
+  // Keyboard navigation
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'ArrowLeft' && index > 0) setIndex(index - 1);
+      if (e.key === 'ArrowRight' && index < photos.length - 1) setIndex(index + 1);
+      if (e.key === 'Escape') close();
     }
-    
-  }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [index, photos.length, setIndex, close]);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Card className="group overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-retro animate-fadeIn">
-          <Image
-            src={publicUrl}
-            alt={photo.name}
-            width={300}
-            height={300}
-            className="object-cover w-full h-48"
-          />
-          <div className="p-2 bg-creme text-black font-sans text-sm text-center truncate group-hover:underline group-hover:font-bold">
-            {photo.name}
-          </div>
-        </Card>
-      </DialogTrigger>
-
-      <DialogPortal>
-        <DialogOverlay />
-
-        <DialogContent className="fixed top-1/2 left-1/2 
-+     -translate-x-1/2 -translate-y-1/2
-+     max-w-3xl bg-black ring-2 ring-creme rounded-lg p-4 shadow-retro
-+ ">
-          <DialogHeader className="flex items-center justify-between">
-            {isRenaming ? (
-              <div className="flex items-center gap-2">
-                <input
-                  className="bg-black text-white border border-creme rounded px-2 py-1 flex-grow"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                />
-                <button
-                  disabled={saving}
-                  onClick={handleRenameSave}
-                  className="p-1"
-                >
-                  {saving
-                    ? <Loader2 className="animate-spin" size={16} />
-                    : <Check size={16} />}
-                </button>
-                <button
-                  onClick={() => {
-                    setNewName(photo.name);
-                    setIsRenaming(false);
-                  }}
-                  className="p-1"
-                >
-                  <XIcon size={16} />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <DialogTitle className="text-creme font-retro text-lg">
-                  {photo.name}
-                </DialogTitle>
-                <button
-                  onClick={() => setIsRenaming(true)}
-                  className="text-creme hover:text-white p-1"
-                >
-                  ✎
-                </button>
-              </div>
-            )}
-          </DialogHeader>
-
-          <div className="mt-4">
-            <Image
-              src={publicUrl}
-              alt={photo.name}
-              width={800}
-              height={600}
-              className="max-h-[80vh] w-full object-contain"
-            />
-          </div>
-
-          <DialogClose className="absolute top-3 right-3 text-creme hover:text-white">
-            ✕
-          </DialogClose>
-        </DialogContent>
-      </DialogPortal>
-    </Dialog>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+      <button
+        className="absolute top-4 right-4 text-creme bg-black/70 rounded-full p-2 shadow focus:outline-none focus:ring-2 focus:ring-creme"
+        onClick={close}
+        aria-label="Close"
+      >
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+      {/* Left arrow */}
+      <button
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-creme bg-black/70 rounded-full p-2 shadow disabled:opacity-30"
+        onClick={() => setIndex(index - 1)}
+        disabled={index === 0}
+        aria-label="Previous"
+      >
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+      </button>
+      {/* Right arrow */}
+      <button
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-creme bg-black/70 rounded-full p-2 shadow disabled:opacity-30"
+        onClick={() => setIndex(index + 1)}
+        disabled={index === photos.length - 1}
+        aria-label="Next"
+      >
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+      </button>
+      <div className="flex flex-col items-center">
+        <img
+          src={publicUrl}
+          alt={photo.name}
+          className="max-h-[80vh] max-w-[90vw] rounded-lg border border-creme/20 shadow-lg"
+        />
+      </div>
+    </div>
   );
 }

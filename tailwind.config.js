@@ -23,6 +23,18 @@ module.exports = {
               '100%': { opacity: 1, transform: 'translateY(0)' },
             },
           },
+          keyframes: {
+            sparkle: {
+              '0%, 100%': { opacity: 0, transform: 'scale(0.8)' },
+              '50%':      { opacity: 1, transform: 'scale(1.2)' },
+            },
+          },
+          animation: {
+            sparkle: {
+              '0%, 100%': { opacity: 0, transform: 'scale(0.8)' },
+              '50%':      { opacity: 1, transform: 'scale(1.2)' },
+            },
+          },
           fontFamily: {
             display: ['var(--font-display', 'sans-serif'],
             body:    ['var(--font-body',    'sans-serif'],

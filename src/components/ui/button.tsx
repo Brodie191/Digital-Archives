@@ -9,7 +9,20 @@ export function Button({
   return (
     <button
       {...props}
-      className={`bg-creme text-black inline-block font-display uppercase font-bold py-2 px-4 rounded transition ease-retro hover:shadow-retro ${className}`}
+      className={` 
+        bg-creme         /* your crème background */
+        text-black       /* readable black text */
+        inline-block
+        font-display     /* Bebas Neue */
+        uppercase        /* all-caps */
+        font-bold
+        py-2 px-4        /* padding */
+        rounded
+        transition ease-retro
+        hover:shadow-retro
+        focus:outline-none focus:ring-2 focus:ring-creme
+        ${className}
+      `}
     >
       {children}
     </button>
