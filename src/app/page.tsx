@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Check, Loader2, X as XIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 
 
 interface Photo {
@@ -97,7 +98,7 @@ function PhotoItem({ photo, openLightroom }: { photo: Photo, openLightroom?: () 
 
   return (
     <Card
-      className="group overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 shadow-retro hover:shadow-lg animate-fadeIn rounded-xl border border-creme/30 bg-black/70 backdrop-blur-md"
+      className="group overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 shadow-retro hover:shadow-lg animate-fadeIn rounded-xl border border-creme/30 bg-black/70 backdrop-blur-md relative"
       onClick={openLightroom}
     >
       <Image
@@ -105,11 +106,8 @@ function PhotoItem({ photo, openLightroom }: { photo: Photo, openLightroom?: () 
         alt={photo.name}
         width={300}
         height={300}
-        className="object-cover w-full h-48 group-hover:opacity-90 transition-opacity"
+        className="object-cover w-full h-full group-hover:opacity-90 transition-opacity"
       />
-      <div className="p-2 bg-creme text-black font-sans text-sm text-center truncate group-hover:underline group-hover:font-bold">
-        {photo.name}
-      </div>
     </Card>
   );
 }
