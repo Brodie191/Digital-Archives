@@ -12,4 +12,9 @@ export interface Photo {
 export interface UploadProgress {
   loaded: number;
   total: number;
+}
+
+export interface PhotoWithUrl extends Photo {
+  url: string;
+  updated_at: string;
 } 

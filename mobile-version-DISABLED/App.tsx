@@ -11,13 +11,13 @@ import {
   Alert,
 } from 'react-native';
 import { supabase } from './lib/supabaseClient';
-import { Photo } from './types';
+import { Photo, PhotoWithUrl } from './types';
 import { PhotoCard } from './components/PhotoCard';
 import { PhotoViewer } from './components/PhotoViewer';
 import { UploadButton } from './components/UploadButton';
 
 export default function App() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photos, setPhotos] = useState<PhotoWithUrl[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
 
@@ -39,13 +39,26 @@ export default function App() {
         return;
       }
 
-      // Sort by the numeric timestamp at the start of each filename (newest first)
-      const sorted = (data as Photo[]).sort((a, b) => {
+      // Map each file to get its public URL
+      const files = await Promise.all(
+        (data as Photo[]).map(async (file) => {
+          const { data: urlData } = supabase.storage.from('photos').getPublicUrl(file.name);
+          return {
+            id: file.name,
+            name: file.name,
+            url: urlData.publicUrl,
+            updated_at: file.updated_at || '',
+          };
+        })
+      );
+
+      // Sort by timestamp prefix in name (newest first)
+      const sorted = files.sort((a, b) => {
         const aTs = Number(a.name.split('_')[0]);
         const bTs = Number(b.name.split('_')[0]);
         return bTs - aTs;
       });
-      
+
       setPhotos(sorted);
     } catch (error) {
       console.error('Error:', error);
