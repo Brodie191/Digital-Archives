@@ -34,7 +34,7 @@ export default function RootLayout({
       <body className="min-h-full bg-black text-white font-body">
         <header className="bg-black text-white p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div className="flex items-center gap-3">
-            <Image src="/Digital.svg" alt="Digital Archives Logo" width={56} height={56} priority />
+            <Image src="/DIGITAL.png" alt="Digital Archives Logo" width={56} height={56} priority />
             <h1 className="font-display text-3xl sm:text-5xl text-creme">
               Digital Archives
             </h1>
